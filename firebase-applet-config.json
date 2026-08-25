@@ -1,0 +1,12 @@
+{
+  "projectId": "valut-io",
+  "appId": "1:832518419847:web:a5c8bb33812082d2de4f22",
+  "apiKey": "AIzaSyAEqE9JW-Bmc_IJLuuotK5eUpi7RDu5Azs",
+  "authDomain": "valut-io.firebaseapp.com",
+  "storageBucket": "valut-io.firebasestorage.app",
+  "messagingSenderId": "832518419847",
+  "measurementId": "G-3RH6PD2BH2",
+  "firestoreDatabaseId": "(default)",
+  "oAuthClientId": "",
+  "recaptchaSiteKey": ""
+}

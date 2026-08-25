@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if requester is workspace owner
+    function isOwner() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'josh.zelalem67@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('username', '').lower() == 'therealjoshuaz' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('usernameLower', '') == 'therealjoshuaz' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('displayName', '').lower() == 'therealjoshuaz'))
+      );
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      
+      // User can create their own doc initially (without unverified privilege escalation)
+      allow create: if isAuthenticated() && (
+        request.auth.uid == userId &&
+        (!request.resource.data.keys().hasAny(['isVerified', 'isBanned']) || isOwner())
+      );
+      
+      // Regular user can update their own profile fields (photo, username, bio, blockedUserUids, status, etc.) but CANNOT change isVerified or isBanned
+      // Owner can update any user's verification, ban status, and profile
+      allow update: if isAuthenticated() && (
+        isOwner() ||
+        (
+          request.auth.uid == userId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'department', 'role', 'username', 'usernameLower', 'avatarColor', 'photoURL', 'bio', 'blockedUserUids', 'status', 'lastSeen', 'lastActive', 'publicKey', 'rsaPublicKey', 'keyFingerprint', 'isOnline'])
+        )
+      );
+
+      allow delete: if isOwner();
+    }
+    
+    // Channels collection
+    match /channels/{channelId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isOwner();
+      
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update: if isAuthenticated() && (
+          isOwner() || 
+          resource.data.senderUid == request.auth.uid ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+        );
+        allow delete: if isOwner() || (isAuthenticated() && resource.data.senderUid == request.auth.uid);
+      }
+    }
+    
+    // 1-on-1 Direct Conversations
+    match /conversations/{conversationId} {
+      allow read, write: if isAuthenticated();
+      
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update: if isAuthenticated() && (
+          isOwner() || 
+          resource.data.senderUid == request.auth.uid ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+        );
+        allow delete: if isOwner() || (isAuthenticated() && resource.data.senderUid == request.auth.uid);
+      }
+    }
+    
+    // Security audit logs
+    match /audit_logs/{logId} {
+      allow read, create: if isAuthenticated();
+    }
+
+    // Audio & Video Calls signaling
+    match /calls/{callId} {
+      allow read, write: if isAuthenticated();
+
+      match /candidates/{candidateId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+  }
+}

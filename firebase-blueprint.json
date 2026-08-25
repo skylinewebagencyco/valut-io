@@ -1,0 +1,93 @@
+{
+  "entities": {
+    "User": {
+      "collection": "users",
+      "fields": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "Worker company email" },
+        "displayName": { "type": "string", "description": "Worker full name" },
+        "role": { "type": "string", "description": "Company title/role (e.g. Security Lead, DevOps, Product)" },
+        "department": { "type": "string", "description": "Company department" },
+        "avatar": { "type": "string", "description": "Avatar style or initial color" },
+        "publicKey": { "type": "string", "description": "Exported JWK RSA/ECDH public key for E2EE" },
+        "keyFingerprint": { "type": "string", "description": "SHA-256 fingerprint of public key" },
+        "status": { "type": "string", "description": "Online, Busy, Away, Offline" },
+        "lastSeen": { "type": "number", "description": "Timestamp of last heartbeat" },
+        "createdAt": { "type": "number", "description": "Account creation timestamp" }
+      }
+    },
+    "Channel": {
+      "collection": "channels",
+      "fields": {
+        "name": { "type": "string", "description": "Channel name with slug" },
+        "description": { "type": "string", "description": "Channel objective" },
+        "isPrivate": { "type": "boolean", "description": "Whether private or workspace-wide" },
+        "createdBy": { "type": "string", "description": "UID of creator" },
+        "memberUids": { "type": "array", "description": "Array of user UIDs" },
+        "keys": { "type": "map", "description": "Map of user UID to encrypted channel symmetric key" },
+        "createdAt": { "type": "number", "description": "Timestamp" },
+        "lastActivity": { "type": "number", "description": "Timestamp of latest message" }
+      }
+    },
+    "Message": {
+      "collection": "channels/{channelId}/messages",
+      "fields": {
+        "channelId": { "type": "string", "description": "Parent channel ID" },
+        "senderUid": { "type": "string", "description": "UID of author" },
+        "senderName": { "type": "string", "description": "Name of author" },
+        "senderRole": { "type": "string", "description": "Role of author" },
+        "ciphertext": { "type": "string", "description": "AES-GCM encrypted message payload in base64" },
+        "iv": { "type": "string", "description": "Initialization vector base64" },
+        "isEncrypted": { "type": "boolean", "description": "E2EE verification flag" },
+        "encryptedFile": { "type": "map", "description": "Encrypted file metadata and payload" },
+        "reactions": { "type": "map", "description": "Map of emoji to array of user UIDs" },
+        "createdAt": { "type": "number", "description": "Timestamp" }
+      }
+    },
+    "DirectMessage": {
+      "collection": "conversations",
+      "fields": {
+        "participantUids": { "type": "array", "description": "UIDs of both workers" },
+        "participantNames": { "type": "map", "description": "Map of uid to name" },
+        "keys": { "type": "map", "description": "Encrypted conversation key per participant" },
+        "lastMessagePreview": { "type": "string", "description": "Encrypted or placeholder preview" },
+        "updatedAt": { "type": "number", "description": "Timestamp" }
+      }
+    },
+    "DirectMessageItem": {
+      "collection": "conversations/{conversationId}/messages",
+      "fields": {
+        "conversationId": { "type": "string", "description": "Conversation ID" },
+        "senderUid": { "type": "string", "description": "Sender UID" },
+        "senderName": { "type": "string", "description": "Sender Name" },
+        "ciphertext": { "type": "string", "description": "Encrypted content" },
+        "iv": { "type": "string", "description": "IV" },
+        "encryptedFile": { "type": "map", "description": "Encrypted file attachment" },
+        "reactions": { "type": "map", "description": "Map of emoji to array of user UIDs" },
+        "createdAt": { "type": "number", "description": "Timestamp" }
+      }
+    },
+    "SecurityAudit": {
+      "collection": "audit_logs",
+      "fields": {
+        "eventType": { "type": "string", "description": "KEY_EXCHANGE, FILE_ENCRYPTED, SESSION_ESTABLISHED, DECRYPTION_VERIFIED" },
+        "actorUid": { "type": "string", "description": "Actor UID" },
+        "actorName": { "type": "string", "description": "Actor Name" },
+        "details": { "type": "string", "description": "Log detail" },
+        "timestamp": { "type": "number", "description": "Timestamp" }
+      }
+    },
+    "CallSession": {
+      "collection": "calls",
+      "fields": {
+        "callerUid": { "type": "string", "description": "Caller user ID" },
+        "callerName": { "type": "string", "description": "Caller name" },
+        "receiverUid": { "type": "string", "description": "Receiver user ID" },
+        "receiverName": { "type": "string", "description": "Receiver name" },
+        "type": { "type": "string", "description": "audio or video" },
+        "status": { "type": "string", "description": "ringing, connected, ended, declined, busy" },
+        "createdAt": { "type": "number", "description": "Call initiation timestamp" }
+      }
+    }
+  }
+}
